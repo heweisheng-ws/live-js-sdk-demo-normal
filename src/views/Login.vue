@@ -39,9 +39,9 @@ export default {
   name: 'Login',
   data() {
     return {
-      channelId: '', // 频道号
-      appId: '', // 直播后台AppID(应用ID)
-      appSecret: '', // ！！！不建议 appSecret 暴露在前端中
+      channelId: '4152907', // 频道号
+      appId: 'fx6jl8kove', // 直播后台AppID(应用ID)
+      appSecret: 'ee392b804c884422810ab60241497d7e', // ！！！不建议 appSecret 暴露在前端中
       playbackMode: false, // 是否纯回放模式
       vid: '', // 回放 vid
     };
