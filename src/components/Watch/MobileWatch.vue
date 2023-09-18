@@ -1,8 +1,9 @@
 <template>
   <section class="plv-watch-mobile-main">
-    <div class="plv-watch-mobile" :class="[`plv-watch-mobile-activeTab--${activeTab}`, playerCtrl.isFullScreen ? 'plv-watch-pc__top--fullscreen': null]">
+    <div class="plv-watch-mobile" :class="[isRtc ? 'plv-watch-mobile--rtc' : null, `plv-watch-mobile-activeTab--${activeTab}`, playerCtrl.isFullScreen ? 'plv-watch-pc__top--fullscreen': null]">
       <div
         class="plv-watch-mobile__top"
+        ref="mobileTop"
         :class="{
          'plv-watch-mobile__screen-main': isPlayerMainPosition,
          'plv-watch-mobile__screen-sub': isPPTMainPosition
@@ -10,6 +11,7 @@
         <!-- 播放器区域 -->
         <div class="plv-watch-mobile-player"
              ref="plv-mobile-player"
+             :style="{top: panelBodyRectTop}"
              id="plv-mobile-player"></div>
         <!-- 用于展示 RTC 主讲的 DOM -->
         <div class="plv-watch-mobile-player"
@@ -79,7 +81,7 @@
 </template>
 
 <script>
-import { mapState, mapMutations } from 'vuex';
+import { mapMutations, mapState } from 'vuex';
 import WatchMixin from '@/components/Watch/WatchMixin';
 import WebviewMixin from '@/components/Watch/WebviewMixin';
 import TabNav from '@/components/TabNav/TabNav.vue';
@@ -94,24 +96,10 @@ import MobileRedEnvelopePointRecord
   from '@/components/InteractionsReceive/RedEnvelope/MobileRedEnvelopePointRecord.vue';
 import MobileRtcPanel from '@/components/RTC/MobileRtcPanel.vue';
 
-import {
-  getDefaultConfigChat, MainScreenMap,
-  PlvChannelScene,
-  PlvChatUserType,
-  TabNavType,
-} from '@/const';
-import PolyvChat, {
-  plvChatMessageHub,
-  PlvChatMessageHubEvents,
-} from '@/sdk/chat';
-import PolyvLive, {
-  plvLiveMessageHub,
-  PlvLiveMessageHubEvents,
-} from '@/sdk/live';
-import PolyvInteractionsReceive, {
-  plvIRMessageHub,
-  PlvIRMessageHubEvents,
-} from '@/sdk/interactions-receive';
+import { getDefaultConfigChat, PlvChannelScene, PlvChatUserType, TabNavType } from '@/const';
+import PolyvChat, { plvChatMessageHub, PlvChatMessageHubEvents } from '@/sdk/chat';
+import PolyvLive, { plvLiveMessageHub, PlvLiveMessageHubEvents } from '@/sdk/live';
+import PolyvInteractionsReceive, { plvIRMessageHub, PlvIRMessageHubEvents } from '@/sdk/interactions-receive';
 
 const irEntranceService = new IREntranceService();
 const likeService = new LikeService();
@@ -162,6 +150,13 @@ export default {
     /** 是否启用举报反馈/投诉 */
     isEnableFeedBack() {
       return this.enableRenderIRComponent && this.watchFeedbackEnabled;
+    },
+    panelBodyRectTop() {
+      const clientHeight = this.$refs.mobileTop?.offsetHeight;
+      return this.isPlayerMainPosition ? (clientHeight + clientHeight / 2) + 'px' : null;
+    },
+    isRtc() {
+      return this.channelInfo.pureRtcEnabled === 'Y';
     }
   },
   mounted() {
@@ -394,7 +389,8 @@ export default {
         this.updateWebviewPlayState(false);
       });
       // 全屏切换
-      plvLive.liveSdk.player.on('fullscreenChange', (isFullScreen) => {
+      plvLive.liveSdk.player.on('s2j_onNormalScreen', (isFullScreen) => {
+        console.log('s2j_onNormalScreen');
         this.playerCtrl.isFullScreen = isFullScreen;
       });
     },
@@ -458,6 +454,12 @@ export default {
 .plv-watch-pc__top--fullscreen {
   .switch-player {
     display: none;
+  }
+}
+.plv-watch-mobile--rtc {
+  // RTC频道下，隐藏切换主副屏按钮
+  .switch-player {
+    display: none !important;
   }
 }
 .switch-player {

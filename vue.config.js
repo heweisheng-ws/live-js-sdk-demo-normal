@@ -2,7 +2,9 @@
  * @type {import('@vue/cli-service').ProjectOptions}
  */
 module.exports = {
-
+  devServer: {
+    https: true,
+  },
   publicPath: process.env.VUE_APP_BUILD_MODE === 'STATIC' ? './' : '/live',
 
   productionSourceMap: false,
